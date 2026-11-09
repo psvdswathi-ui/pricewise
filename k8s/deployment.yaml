@@ -1,0 +1,20 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pricewise
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: pricewise
+  template:
+    metadata:
+      labels:
+        app: pricewise
+    spec:
+      containers:
+        - name: pricewise
+          image: pricewise:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8080

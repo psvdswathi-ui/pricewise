@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PriceWise - Compare Prices</title>
+<style>
+  *{box-sizing:border-box}
+  body{margin:0;font-family:"Segoe UI",Arial,sans-serif;background:#f4f6fb;color:#1f2937}
+  header{background:#1f3b57;color:#fff;padding:28px 16px 40px;text-align:center}
+  header h1{margin:0 0 6px;font-size:32px}
+  header p{margin:0;opacity:.85}
+  .search{display:flex;gap:8px;max-width:640px;margin:-22px auto 0;padding:0 16px}
+  .search input{flex:1;padding:14px 16px;font-size:16px;border:1px solid #cbd5e1;border-radius:8px}
+  .search button{padding:14px 22px;font-size:16px;border:0;border-radius:8px;background:#f59e0b;color:#111;font-weight:600;cursor:pointer}
+  .hint{text-align:center;font-size:14px;color:#64748b;margin:12px 0}
+  .hint a{color:#1f3b57;cursor:pointer;text-decoration:underline;margin:0 6px}
+  main{max-width:900px;margin:10px auto 40px;padding:0 16px}
+  .card{background:#fff;border:1px solid #e2e8f0;border-radius:10px;padding:16px;margin-bottom:12px;display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
+  .card.best{border:2px solid #16a34a}
+  .badge{background:#16a34a;color:#fff;font-size:12px;padding:3px 8px;border-radius:12px;margin-left:8px}
+  .out{opacity:.6}
+  .retailer{font-size:18px;font-weight:700}
+  .meta{font-size:14px;color:#475569;line-height:1.6}
+  .total{text-align:right}
+  .total .amt{font-size:26px;font-weight:700;color:#1f3b57}
+  .total a{display:inline-block;margin-top:6px;padding:8px 14px;background:#1f3b57;color:#fff;border-radius:6px;text-decoration:none;font-size:14px}
+  .msg{text-align:center;color:#64748b;margin-top:30px}
+  .name{font-weight:600;margin:0 0 4px}
+</style>
+</head>
+<body>
+<header>
+  <h1>PriceWise</h1>
+  <p>Search once. Compare prices across platforms. Pick the cheapest total cost.</p>
+</header>
+
+<div class="search">
+  <input id="q" placeholder="Search a product, e.g. Samsung Galaxy M35" onkeydown="if(event.key==='Enter')search()">
+  <button onclick="search()">Compare</button>
+</div>
+<div class="hint">Try:
+  <a onclick="quick('samsung galaxy')">Samsung Galaxy</a>
+  <a onclick="quick('boat airdopes')">boAt Airdopes</a>
+  <a onclick="quick('realme narzo')">Realme Narzo</a>
+  <a onclick="quick('noise colorfit')">Noise ColorFit</a>
+</div>
+
+<main id="results"><p class="msg">Enter a product name to start comparing.</p></main>
+
+<script>
+const inr = n => '\u20B9' + Number(n).toLocaleString('en-IN');
+function quick(t){ document.getElementById('q').value = t; search(); }
+
+async function search(){
+  const q = document.getElementById('q').value.trim();
+  const box = document.getElementById('results');
+  if(!q){ box.innerHTML = '<p class="msg">Please type a product name.</p>'; return; }
+  box.innerHTML = '<p class="msg">Searching...</p>';
+  try{
+    const res = await fetch('/api/compare?q=' + encodeURIComponent(q));
+    const data = await res.json();
+    if(!data.length){ box.innerHTML = '<p class="msg">No matching products found.</p>'; return; }
+    box.innerHTML = data.map((x, i) => `
+      <div class="card ${i===0 && x.inStock ? 'best' : ''} ${x.inStock ? '' : 'out'}">
+        <div>
+          <div class="retailer">${x.retailer}${i===0 && x.inStock ? '<span class="badge">Lowest total cost</span>' : ''}</div>
+          <p class="name">${x.productName}</p>
+          <div class="meta">
+            Price: ${inr(x.price)} &nbsp;|&nbsp; Delivery: ${x.deliveryCharge ? inr(x.deliveryCharge) : 'Free'}
+            &nbsp;|&nbsp; Other fees: ${x.otherFees ? inr(x.otherFees) : '\u2013'}<br>
+            Rating: ${x.rating} &#9733; &nbsp;|&nbsp; ${x.inStock ? 'In stock' : 'Out of stock'}<br>
+            Price checked: ${x.checkedAt}
+          </div>
+        </div>
+        <div class="total">
+          <div class="meta">Estimated total</div>
+          <div class="amt">${inr(x.totalCost)}</div>
+          <a href="${x.url}" target="_blank" rel="noopener">Go to ${x.retailer}</a>
+        </div>
+      </div>`).join('');
+  }catch(e){
+    box.innerHTML = '<p class="msg">Could not reach the server. Is the application running?</p>';
+  }
+}
+</script>
+</body>
+</html>
