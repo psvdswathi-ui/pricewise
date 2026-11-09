@@ -3,7 +3,7 @@ pipeline {
     stages {
         stage('Checkout') {
             steps {
-                git branch: 'main', url: 'https://github.com/YOUR-USERNAME/pricewise.git'
+                git branch: 'main', url: 'https://github.com/psvdswathi-ui/pricewise.git'
             }
         }
         stage('Build') {
