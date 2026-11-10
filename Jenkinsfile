@@ -1,5 +1,9 @@
 pipeline {
     agent any
+    environment {
+        PATH = "C:\\Users\\psvds\\AppData\\Local\\Programs\\DockerDesktop\\resources\\bin;${env.PATH}"
+        KUBECONFIG = "C:\\Users\\psvds\\.kube\\config"
+    }
     stages {
         stage('Checkout') {
             steps {
